@@ -366,11 +366,6 @@ public class RuntimeStyleTests extends EspressoTest {
     }
   }
 
-  @After
-  public void unregisterIntentServiceIdlingResource() {
-    Espresso.unregisterIdlingResources(idlingResource);
-  }
-
   public abstract class BaseViewAction implements ViewAction {
 
     @Override

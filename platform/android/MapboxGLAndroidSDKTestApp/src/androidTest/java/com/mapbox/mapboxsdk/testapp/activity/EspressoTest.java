@@ -1,6 +1,6 @@
 package com.mapbox.mapboxsdk.testapp.activity;
 
-import android.support.test.espresso.IdlingResource;
+import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.testapp.activity.espresso.EspressoTestActivity;
 import com.mapbox.mapboxsdk.testapp.utils.LoadStyleIdlingResource;
 
@@ -13,12 +13,13 @@ import com.mapbox.mapboxsdk.testapp.utils.LoadStyleIdlingResource;
 public class EspressoTest extends BaseTest {
 
   @Override
-  protected IdlingResource generateIdlingResource() {
-    return new LoadStyleIdlingResource(rule.getActivity());
+  protected final Class getActivityClass() {
+    return EspressoTestActivity.class;
   }
 
   @Override
-  protected final Class getActivityClass() {
-    return EspressoTestActivity.class;
+  protected void initMap(MapboxMap mapboxMap) {
+    super.initMap(mapboxMap);
+    mapboxMap.setStyle("asset://streets.json");
   }
 }

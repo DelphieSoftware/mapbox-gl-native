@@ -15,13 +15,6 @@ import org.junit.Test
 
 class VisibleRegionTest : EspressoTest() {
 
-  private lateinit var mapView: MapView
-
-  override fun beforeTest() {
-    super.beforeTest()
-    mapView = (rule.activity as EspressoTestActivity).mapView
-  }
-
   @Test
   fun visibleRegionTest() {
     validateTestSetup()

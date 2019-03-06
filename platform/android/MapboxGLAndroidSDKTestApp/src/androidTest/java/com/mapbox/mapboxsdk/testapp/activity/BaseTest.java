@@ -9,6 +9,7 @@ import android.support.test.espresso.ViewInteraction;
 import android.support.test.rule.ActivityTestRule;
 
 import com.mapbox.mapboxsdk.Mapbox;
+import com.mapbox.mapboxsdk.maps.MapView;
 import com.mapbox.mapboxsdk.maps.MapboxMap;
 import com.mapbox.mapboxsdk.testapp.R;
 import com.mapbox.mapboxsdk.testapp.action.MapboxMapAction;
@@ -16,12 +17,15 @@ import com.mapbox.mapboxsdk.testapp.action.WaitAction;
 import com.mapbox.mapboxsdk.testapp.utils.FinishLoadingStyleIdlingResource;
 
 import com.mapbox.mapboxsdk.testapp.utils.MapboxIdlingResource;
+
 import junit.framework.Assert;
 
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Rule;
 import org.junit.rules.TestName;
+
+import java.util.concurrent.CountDownLatch;
 
 import timber.log.Timber;
 
@@ -42,34 +46,26 @@ public abstract class BaseTest {
   public TestName testNameRule = new TestName();
 
   protected MapboxMap mapboxMap;
-  protected MapboxIdlingResource idlingResource;
+  protected MapView mapView;
+
+  private CountDownLatch latch = new CountDownLatch(1);
 
   @Before
   public void beforeTest() {
     try {
-      Timber.e(String.format(
-        "%s - %s - %s",
-        getClass().getSimpleName(),
-        testNameRule.getMethodName(),
-        "@Before test: register idle resource"
-      ));
-      idlingResource = (MapboxIdlingResource) generateIdlingResource();
-      IdlingRegistry.getInstance().register(idlingResource);
-      Espresso.onIdle();
-      mapboxMap = idlingResource.getMapboxMap();
-    } catch (IdlingResourceTimeoutException idlingResourceTimeoutException) {
-      throw new RuntimeException(
-        String.format(
-          "Could not start %s test for %s.",
-          testNameRule.getMethodName(),
-          getActivityClass().getSimpleName()
-        )
-      );
+      rule.runOnUiThread(() -> {
+        mapView = rule.getActivity().findViewById(R.id.mapView);
+        mapView.addOnDidFinishLoadingStyleListener(() -> latch.countDown());
+        mapView.getMapAsync(this::initMap);
+      });
+      latch.await();
+    } catch (Throwable throwable) {
+      throwable.printStackTrace();
     }
   }
 
-  protected IdlingResource generateIdlingResource() {
-    return new FinishLoadingStyleIdlingResource(rule.getActivity());
+  protected void initMap(MapboxMap mapboxMap) {
+    this.mapboxMap = mapboxMap;
   }
 
   protected void validateTestSetup() {
@@ -109,8 +105,7 @@ public abstract class BaseTest {
 
   @After
   public void afterTest() {
-    Timber.e(String.format("%s - %s", testNameRule.getMethodName(), "@After test: unregister idle resource"));
-    IdlingRegistry.getInstance().unregister(idlingResource);
+
   }
 }
 
